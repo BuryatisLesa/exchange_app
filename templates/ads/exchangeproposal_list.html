@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Предложения на обмен</h2>
+<ul class="list-group">
+  {% for exchangeproposol in exchangeproposals %}
+    <li class="list-group-item">
+      <a href="{% url 'exchangeproposal-detail' exchangeproposol.pk %}">
+        {{ exchangeproposol.ad_sender }} → {{ exchangeproposol.ad_receiver }}
+      </a>
+      <span class="text-muted float-end">{{ exchangeproposol.created_at }}</span>
+    </li>
+  {% empty %}
+    <li class="list-group-item">Нет предложений.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

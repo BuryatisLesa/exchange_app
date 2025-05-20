@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} предложение</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">Сохранить</button>
+  <a class="btn btn-link" href="{% url 'exchangeproposal-list' %}">Отмена</a>
+</form>
+{% endblock %}

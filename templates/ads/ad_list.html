@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Объявления</h2>
+<a class="btn btn-primary mb-3" href="{% url 'ad-create' %}">Создать объявление</a>
+<ul class="list-group">
+  {% for ad in ads %}
+    <li class="list-group-item">
+      <a href="{% url 'ad-detail' ad.pk %}">{{ ad.title }}</a>
+      <span class="text-muted float-end">{{ ad.created_at }}</span>
+    </li>
+  {% empty %}
+    <li class="list-group-item">Объявлений нет.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Предложение на обмен</h2>
+<p><strong>Ваше объявление:</strong> {{ exchangeproposol.ad_sender }}</p>
+<p><strong>Получатель:</strong> {{ exchangeproposol.ad_receiver }}</p>
+<p><strong>Комментарий:</strong> {{ exchangeproposol.comment }}</p>
+<p><strong>Статус:</strong> {{ exchangeproposol.get_status_display }}</p>
+<hr>
+<a class="btn btn-secondary" href="{% url 'exchangeproposal-update' exchangeproposol.pk %}">Редактировать</a>
+<a class="btn btn-danger" href="{% url 'exchangeproposal-delete' exchangeproposol.pk %}">Удалить</a>
+<a class="btn btn-link" href="{% url 'exchangeproposal-list' %}">Назад</a>
+{% endblock %}

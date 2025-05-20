@@ -1,8 +1,22 @@
-from ads.models import Ad, ExchangeProposal
+from .models import Ad, ExchangeProposal
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
+from .forms import AdForm, ExchangeProposalForm
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
+
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
 
 
 class AdListView(ListView):
@@ -24,8 +38,8 @@ class AdDetailView(LoginRequiredMixin, DetailView):
 class AdCreateView(LoginRequiredMixin, CreateView):
     """Создание объявление"""
     model = Ad
-    fields = ["title"]
     template_name = "ads/ad_form.html"
+    form_class = AdForm
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -37,8 +51,8 @@ class AdCreateView(LoginRequiredMixin, CreateView):
 class AdUpdateView(LoginRequiredMixin, UpdateView):
     """Обновление/редактирование объявление"""
     model = Ad
-    fields = ["title"]
     template_name = "ads/ad_form.html"
+    form_class = AdForm
 
     def dispatch(self, request, *args, **kwargs):
         # Проверяем, что только пользователь, который создал может редактировать объявление
@@ -65,7 +79,7 @@ class AdDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy("ads-list")
 
 
-class ExchangeProposolListView(ListView):
+class ExchangeProposalListView(ListView):
     """Вывод всех предложений"""
     model = ExchangeProposal
     template_name = 'ads/exchangeproposal_list.html'
@@ -74,18 +88,18 @@ class ExchangeProposolListView(ListView):
     paginate_by = 5
 
 
-class ExchangeProposolDetailView(LoginRequiredMixin, DetailView):
+class ExchangeProposalDetailView(LoginRequiredMixin, DetailView):
     """Отдельная страничка предложения"""
     model = ExchangeProposal
     template_name = "ads/exchangeproposal_detail.html"
     context_object_name = "exchangeproposol"
 
 
-class ExchangeProposolCreateView(LoginRequiredMixin, CreateView):
+class ExchangeProposalCreateView(LoginRequiredMixin, CreateView):
     """Создание предложений"""
     model = ExchangeProposal
-    fields = ["ad_sender_id", "ad_receiver_id"]
     template_name = "ads/exchangeproposal_form.html"
+    form_class = ExchangeProposalForm
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -94,11 +108,11 @@ class ExchangeProposolCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("exchangeproposal-list")
 
 
-class ExchangeProposolUpdateView(LoginRequiredMixin, UpdateView):
+class ExchangeProposalUpdateView(LoginRequiredMixin, UpdateView):
     """Обновить/редактировать предложение"""
     model = ExchangeProposal
-    fields = ["ad_sender_id", "ad_receiver_id"]
     template_name = "ads/exchangeproposal_form.html"
+    form_class = ExchangeProposalForm
 
     def dispatch(self, request, *args, **kwargs):
         # Проверяем, что только пользователь, который создал может редактировать предложение
@@ -110,7 +124,7 @@ class ExchangeProposolUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy("exchangeproposal-list")
 
 
-class ExchangeProposolDeleteView(LoginRequiredMixin, DeleteView):
+class ExchangeProposalDeleteView(LoginRequiredMixin, DeleteView):
     """Удаление предложение"""
     model = ExchangeProposal
     template_name = "ads/exchangeproposal_confirm_delete.html"
