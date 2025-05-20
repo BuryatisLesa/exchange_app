@@ -1,16 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Предложения на обмен</h2>
+
+<h2>
+  {% if request.path == '/proposals/sent/' %}
+    Мои предложения
+  {% elif request.path == '/proposals/received/' %}
+    Мне предложили
+  {% else %}
+    Все предложения на обмен
+  {% endif %}
+</h2>
+
 <ul class="list-group">
-  {% for exchangeproposol in exchangeproposals %}
+  {% for proposal in exchangeproposals %}
     <li class="list-group-item">
-      <a href="{% url 'exchangeproposal-detail' exchangeproposol.pk %}">
-        {{ exchangeproposol.ad_sender }} → {{ exchangeproposol.ad_receiver }}
+      <a href="{% url 'exchangeproposal-detail' proposal.pk %}">
+        {{ proposal.ad_sender.title }} → {{ proposal.ad_receiver.title }}
       </a>
-      <span class="text-muted float-end">{{ exchangeproposol.created_at }}</span>
+      <div class="small text-muted">
+        Статус: {{ proposal.get_status_display }} |
+        Дата: {{ proposal.created_at }}
+      </div>
+
+      {% if request.path == '/proposals/received/' and proposal.status == 'waiting' %}
+        <form action="{% url 'proposal-respond' proposal.pk %}" method="post" class="mt-2 d-flex gap-2">
+          {% csrf_token %}
+          <button name="status" value="accepted" class="btn btn-success btn-sm">Принять</button>
+          <button name="status" value="rejected" class="btn btn-danger btn-sm">Отклонить</button>
+        </form>
+      {% endif %}
     </li>
   {% empty %}
     <li class="list-group-item">Нет предложений.</li>
   {% endfor %}
 </ul>
+
 {% endblock %}

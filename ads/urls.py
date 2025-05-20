@@ -10,6 +10,9 @@ from .views import (
     ExchangeProposalCreateView,
     ExchangeProposalUpdateView,
     ExchangeProposalDeleteView,
+    MySentProposalsView,
+    MyReceivedProposalsView,
+    ExchangeProposalRespondView,
 )
 
 urlpatterns = [
@@ -26,4 +29,11 @@ urlpatterns = [
     path('proposals/create/', ExchangeProposalCreateView.as_view(), name='exchangeproposal-create'),
     path('proposals/<int:pk>/update/', ExchangeProposalUpdateView.as_view(), name='exchangeproposal-update'),
     path('proposals/<int:pk>/delete/', ExchangeProposalDeleteView.as_view(), name='exchangeproposal-delete'),
+
+    # Личные предложения
+    path('proposals/sent/', MySentProposalsView.as_view(), name='my-sent-proposals'),
+    path('proposals/received/', MyReceivedProposalsView.as_view(), name='my-received-proposals'),
+
+    # Ответ на входящее предложение
+    path('proposals/<int:pk>/respond/', ExchangeProposalRespondView.as_view(), name='proposal-respond'),
 ]

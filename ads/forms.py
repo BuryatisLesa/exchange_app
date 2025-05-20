@@ -27,10 +27,12 @@ class ExchangeProposalForm(forms.ModelForm):
         widgets = {
             'ad_sender': forms.Select(attrs={'class': 'form-select'}),
             'ad_receiver': forms.Select(attrs={'class': 'form-select'}),
-            'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Комментарий (необязательно)'}),
+            'comment': forms.TextInput(attrs={'class': 'form-control'}),
         }
-        labels = {
-            'ad_sender': 'Ваше объявление',
-            'ad_receiver': 'Объявление для обмена',
-            'comment': 'Комментарий',
-        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            self.fields['ad_sender'].queryset = Ad.objects.filter(user=user)

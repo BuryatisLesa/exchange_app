@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>{{ ad.title }}</h2>
+
 <p><strong>Категория:</strong> {{ ad.category }}</p>
 <p><strong>Состояние:</strong> {{ ad.get_condition_display }}</p>
 <p>{{ ad.description }}</p>
+
 {% if ad.image %}
   <img src="{{ ad.image.url }}" class="img-fluid" alt="Изображение объявления">
 {% endif %}
+
 <hr>
-<a class="btn btn-secondary" href="{% url 'ad-update' ad.pk %}">Редактировать</a>
-<a class="btn btn-danger" href="{% url 'ad-delete' ad.pk %}">Удалить</a>
+{% if ad.user == request.user %}
+  <a class="btn btn-secondary" href="{% url 'ad-update' ad.pk %}">Редактировать</a>
+  <a class="btn btn-danger" href="{% url 'ad-delete' ad.pk %}">Удалить</a>
+{% else %}
+  <a class="btn btn-success" href="{% url 'exchangeproposal-create' %}?ad_receiver={{ ad.pk }}">Предложить обмен</a>
+{% endif %}
 <a class="btn btn-link" href="{% url 'ads-list' %}">Назад к списку</a>
 {% endblock %}

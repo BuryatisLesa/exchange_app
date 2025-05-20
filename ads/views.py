@@ -6,6 +6,10 @@ from django.core.exceptions import PermissionDenied
 from .forms import AdForm, ExchangeProposalForm
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
+from django.db.models import Q
+from django.contrib import messages
+from django.views import View
+from django.shortcuts import redirect, get_object_or_404
 
 
 def register(request):
@@ -19,13 +23,71 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
+class ExchangeProposalRespondView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        proposal = get_object_or_404(ExchangeProposal, pk=pk)
+
+        # Только владелец ad_receiver может отвечать
+        if proposal.ad_receiver.user != request.user:
+            raise PermissionDenied
+
+        status = request.POST.get("status")
+        if status in ["accepted", "rejected"]:
+            proposal.status = status
+            proposal.save()
+            messages.success(request, f"Предложение {'принято' if status == 'accepted' else 'отклонено'}.")
+        return redirect("my-received-proposals")
+
+class MySentProposalsView(LoginRequiredMixin, ListView):
+    model = ExchangeProposal
+    template_name = 'ads/exchangeproposal_list.html'
+    context_object_name = 'exchangeproposals'
+
+    def get_queryset(self):
+        return ExchangeProposal.objects.filter(user=self.request.user).order_by('-created_at')
+
+
+class MyReceivedProposalsView(LoginRequiredMixin, ListView):
+    model = ExchangeProposal
+    template_name = 'ads/exchangeproposal_list.html'
+    context_object_name = 'exchangeproposals'
+
+    def get_queryset(self):
+        return ExchangeProposal.objects.filter(ad_receiver__user=self.request.user).order_by('-created_at')
+
+
 class AdListView(ListView):
-    """Вывод всех объявлений"""
+    """Вывод всех объявлений с фильтрацией"""
     model = Ad
     template_name = 'ads/ad_list.html'
     context_object_name = 'ads'
     ordering = ['-created_at']
     paginate_by = 5
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.GET.get('search', '')
+        category = self.request.GET.get('category', '')
+        condition = self.request.GET.get('condition', '')
+
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(description__icontains=search)
+            )
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+        if condition:
+            queryset = queryset.filter(condition=condition)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search'] = self.request.GET.get('search', '')
+        context['category'] = self.request.GET.get('category', '')
+        context['condition'] = self.request.GET.get('condition', '')
+        context['condition_choices'] = Ad.Condition.choices
+        return context
     
 
 class AdDetailView(LoginRequiredMixin, DetailView):
@@ -96,16 +158,26 @@ class ExchangeProposalDetailView(LoginRequiredMixin, DetailView):
 
 
 class ExchangeProposalCreateView(LoginRequiredMixin, CreateView):
-    """Создание предложений"""
     model = ExchangeProposal
-    template_name = "ads/exchangeproposal_form.html"
     form_class = ExchangeProposalForm
+    template_name = "ads/exchangeproposal_form.html"
+    success_url = reverse_lazy("exchangeproposal-list")
+
+    def get_initial(self):
+        initial = super().get_initial()
+        ad_receiver_id = self.request.GET.get("ad_receiver")
+        if ad_receiver_id:
+            initial["ad_receiver"] = ad_receiver_id
+        return initial
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
-    
-    success_url = reverse_lazy("exchangeproposal-list")
 
 
 class ExchangeProposalUpdateView(LoginRequiredMixin, UpdateView):
