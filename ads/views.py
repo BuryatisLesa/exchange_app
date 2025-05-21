@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.views import View
 from django.shortcuts import redirect, get_object_or_404
 
-
+# Регистрация пользователей
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -24,6 +24,7 @@ def register(request):
 
 
 class ExchangeProposalRespondView(LoginRequiredMixin, View):
+    """Ответ на предложение"""
     def post(self, request, pk):
         proposal = get_object_or_404(ExchangeProposal, pk=pk)
 
@@ -39,6 +40,7 @@ class ExchangeProposalRespondView(LoginRequiredMixin, View):
         return redirect("my-received-proposals")
 
 class MySentProposalsView(LoginRequiredMixin, ListView):
+    """Исходящие предложения"""
     model = ExchangeProposal
     template_name = 'ads/exchangeproposal_list.html'
     context_object_name = 'exchangeproposals'
@@ -48,6 +50,7 @@ class MySentProposalsView(LoginRequiredMixin, ListView):
 
 
 class MyReceivedProposalsView(LoginRequiredMixin, ListView):
+    """Входящие предложения"""
     model = ExchangeProposal
     template_name = 'ads/exchangeproposal_list.html'
     context_object_name = 'exchangeproposals'
@@ -64,6 +67,7 @@ class AdListView(ListView):
     ordering = ['-created_at']
     paginate_by = 5
 
+    # Фильтрация(поиск)
     def get_queryset(self):
         queryset = super().get_queryset()
         search = self.request.GET.get('search', '')
@@ -202,7 +206,7 @@ class ExchangeProposalDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "ads/exchangeproposal_confirm_delete.html"
 
     def dispatch(self, request, *args, **kwargs):
-        # Проверяем, что только пользователь, который создал может редактировать предложение
+        # Проверяем, что только пользователь, который создал может удалить предложение
         exchangeproposol = self.get_object()
         if exchangeproposol.user != request.user:
             raise PermissionDenied("У вас нет прав для удаление этого предложения.")

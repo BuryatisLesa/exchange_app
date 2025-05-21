@@ -7,4 +7,5 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),  # логин, логаут, смена пароля
     path('accounts/register/', register, name='register'),   # регистрация
     path('', include('ads.urls')),
+    path('api/', include('ads.api_urls')),
 ]
